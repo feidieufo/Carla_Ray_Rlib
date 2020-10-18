@@ -63,7 +63,7 @@ RUN apt-get update --fix-missing && \
     python3.6-dev \
     libpng16-16 \
     libjpeg-turbo8 \
-    libtiff5 \
+    libtiff5 
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
 
