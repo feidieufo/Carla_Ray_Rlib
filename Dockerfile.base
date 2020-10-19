@@ -1,0 +1,26 @@
+FROM carlasim/carla:0.9.6 as carla
+FROM nvidia/cuda:10.0-devel-ubuntu16.04
+RUN packages='libsdl2-2.0' \
+	&& apt-get update && apt-get install -y $packages --no-install-recommends \
+	&& rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m carla
+
+COPY --from=carla --chown=carla:carla /home/carla /home/carla
+LABEL maintainer "NVIDIA CORPORATION <cudatools@nvidia.com>"
+COPY --from=carla /usr/local/lib/x86_64-linux-gnu /usr/local/lib/x86_64-linux-gnu
+COPY --from=carla /usr/local/lib/i386-linux-gnu /usr/local/lib/i386-linux-gnu
+
+COPY --from=carla /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json
+
+RUN echo '/usr/local/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
+    echo '/usr/local/lib/i386-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
+    ldconfig
+
+ENV LD_LIBRARY_PATH /usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+ENV SDL_VIDEODRIVER=offscreen
+
+USER carla
+WORKDIR /home/carla
+
