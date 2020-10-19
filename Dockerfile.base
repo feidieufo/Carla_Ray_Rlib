@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         x11proto-gl-dev && \
     rm -rf /var/lib/apt/lists/*
 
-ARG LIBGLVND_VERSION
+ARG LIBGLVND_VERSION=0.1.1
 
 WORKDIR /opt/libglvnd
 RUN git clone --branch="${LIBGLVND_VERSION}" https://github.com/NVIDIA/libglvnd.git . && \
