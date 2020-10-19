@@ -39,13 +39,7 @@ RUN make distclean && \
     find /usr/local/lib/i386-linux-gnu -type f -name 'lib*.la' -delete
 
 FROM nvidia/cuda:10.0-devel-ubuntu16.04
-RUN packages='libsdl2-2.0' \
-	&& apt-get update && apt-get install -y $packages --no-install-recommends \
-	&& rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m carla
-
-COPY --from=carla --chown=carla:carla /home/carla /home/carla
 LABEL maintainer "NVIDIA CORPORATION <cudatools@nvidia.com>"
 COPY --from=glvnd /usr/local/lib/x86_64-linux-gnu /usr/local/lib/x86_64-linux-gnu
 COPY --from=glvnd /usr/local/lib/i386-linux-gnu /usr/local/lib/i386-linux-gnu
@@ -57,6 +51,14 @@ RUN echo '/usr/local/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
     ldconfig
 
 ENV LD_LIBRARY_PATH /usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+RUN packages='libsdl2-2.0' \
+	&& apt-get update && apt-get install -y $packages --no-install-recommends \
+	&& rm -rf /var/lib/apt/lists/*
+    
+RUN useradd -m carla
+
+COPY --from=carla --chown=carla:carla /home/carla /home/carla
 
 ENV SDL_VIDEODRIVER=offscreen
 
