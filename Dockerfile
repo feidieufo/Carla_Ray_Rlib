@@ -6,7 +6,18 @@ RUN packages='libsdl2-2.0' \
 
 RUN useradd -m carla
 
-COPY --from=carla --chown=carla:carla . /home/carla
+COPY --from=carla --chown=carla:carla /home/carla /home/carla
+LABEL maintainer "NVIDIA CORPORATION <cudatools@nvidia.com>"
+COPY --from=carla /usr/local/lib/x86_64-linux-gnu /usr/local/lib/x86_64-linux-gnu
+COPY --from=carla /usr/local/lib/i386-linux-gnu /usr/local/lib/i386-linux-gnu
+
+COPY --from=carla /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json /usr/local/share/glvnd/egl_vendor.d/10_nvidia.json
+
+RUN echo '/usr/local/lib/x86_64-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
+    echo '/usr/local/lib/i386-linux-gnu' >> /etc/ld.so.conf.d/glvnd.conf && \
+    ldconfig
+
+ENV LD_LIBRARY_PATH /usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 
 ENV SDL_VIDEODRIVER=offscreen
 
@@ -64,7 +75,8 @@ RUN apt-get update --fix-missing && \
     python3.6-dev \
     libpng16-16 \
     libjpeg-turbo8 \
-    libtiff5 
+    libtiff5 \
+    nmap
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
 
@@ -79,7 +91,7 @@ RUN pip install ray==0.8.6
 RUN pip install gym
 RUN pip install pygame
 RUN pip install opencv-python
-RUN pip install pandas ray[rllib]
+RUN pip install pandas ray[rllib] psutil
 
 USER carla
 WORKDIR /home/carla
