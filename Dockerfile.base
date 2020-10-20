@@ -1,5 +1,8 @@
 FROM carlasim/carla:0.9.6 as carla
-FROM nvidia/cuda:10.0-devel-ubuntu16.04 as glvnd
+ARG from=ubuntu:16.04
+
+# Build libglvnd
+FROM ubuntu:16.04 as glvnd
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
@@ -38,9 +41,10 @@ RUN make distclean && \
     make -j"$(nproc)" install-strip && \
     find /usr/local/lib/i386-linux-gnu -type f -name 'lib*.la' -delete
 
-FROM nvidia/cuda:10.0-devel-ubuntu16.04
 
+FROM ${from}
 LABEL maintainer "NVIDIA CORPORATION <cudatools@nvidia.com>"
+
 COPY --from=glvnd /usr/local/lib/x86_64-linux-gnu /usr/local/lib/x86_64-linux-gnu
 COPY --from=glvnd /usr/local/lib/i386-linux-gnu /usr/local/lib/i386-linux-gnu
 
@@ -55,13 +59,14 @@ ENV LD_LIBRARY_PATH /usr/local/lib/x86_64-linux-gnu:/usr/local/lib/i386-linux-gn
 RUN packages='libsdl2-2.0' \
 	&& apt-get update && apt-get install -y $packages --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
-    
+
 RUN useradd -m carla
 
 COPY --from=carla --chown=carla:carla /home/carla /home/carla
 
-ENV SDL_VIDEODRIVER=offscreen
-
 USER carla
 WORKDIR /home/carla
+
+ENV SDL_VIDEODRIVER=offscreen
+
 
